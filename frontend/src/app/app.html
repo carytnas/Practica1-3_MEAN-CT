@@ -1,0 +1,147 @@
+<!-- Toast -->
+@if (toast()) {
+  <div class="toast" [class.toast-ok]="toast()!.tipo === 'ok'" [class.toast-err]="toast()!.tipo === 'err'">
+    {{ toast()!.msg }}
+  </div>
+}
+
+<div class="layout">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <span class="header-icon">👥</span>
+        <div>
+          <h1 class="header-title">Gestión de Empleados</h1>
+          <p class="header-sub">Panel de administración</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" (click)="abrirCrear()">+ Nuevo Empleado</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <span class="stat-label">Total empleados</span>
+        <span class="stat-value">{{ empleados().length }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Masa salarial</span>
+        <span class="stat-value">${{ totalSueldos() | number }}</span>
+      </div>
+      <button class="btn btn-ghost refresh-btn" (click)="cargar()" title="Actualizar lista">
+        ↻ Actualizar
+      </button>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading">
+        <div class="spinner"></div>
+        <span>Cargando empleados...</span>
+      </div>
+    }
+
+    <!-- Empty -->
+    @if (!loading() && empleados().length === 0) {
+      <div class="empty">
+        <span class="empty-icon">📋</span>
+        <p>No hay empleados registrados.</p>
+        <button class="btn btn-primary" (click)="abrirCrear()">Agregar el primero</button>
+      </div>
+    }
+
+    <!-- Table -->
+    @if (!loading() && empleados().length > 0) {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Cargo</th>
+              <th>Departamento</th>
+              <th>Sueldo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of empleados(); track e.id) {
+              <tr>
+                <td><span class="id-chip">{{ e.id | slice:0:8 }}…</span></td>
+                <td>
+                  <div class="avatar-cell">
+                    <span class="avatar">{{ e.nombre[0] }}</span>
+                    {{ e.nombre }}
+                  </div>
+                </td>
+                <td><span class="badge">{{ e.cargo }}</span></td>
+                <td>{{ e.departamento }}</td>
+                <td class="sueldo">${{ e.sueldo | number }}</td>
+                <td>
+                  @if (confirmandoId() === e.id) {
+                    <div class="confirm-row">
+                      <span class="confirm-text">¿Eliminar?</span>
+                      <button class="btn btn-danger btn-sm" (click)="eliminar(e.id)">Sí</button>
+                      <button class="btn btn-ghost btn-sm" (click)="cancelarConfirmacion()">No</button>
+                    </div>
+                  } @else {
+                    <div class="action-row">
+                      <button class="btn btn-edit btn-sm" (click)="abrirEditar(e)">Editar</button>
+                      <button class="btn btn-danger btn-sm" (click)="pedirConfirmacion(e.id)">Eliminar</button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Modal -->
+@if (modalAbierto()) {
+  <div class="overlay" (click)="modalAbierto.set(false)"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <h2>{{ modalMode() === 'crear' ? 'Nuevo Empleado' : 'Editar Empleado' }}</h2>
+      <button class="modal-close" (click)="modalAbierto.set(false)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" placeholder="Ej: Juan Pérez"
+          [value]="form().nombre"
+          (input)="patchForm('nombre', $any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label>Cargo</label>
+        <input type="text" placeholder="Ej: Desarrollador"
+          [value]="form().cargo"
+          (input)="patchForm('cargo', $any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label>Departamento</label>
+        <input type="text" placeholder="Ej: Tecnología"
+          [value]="form().departamento"
+          (input)="patchForm('departamento', $any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label>Sueldo</label>
+        <input type="number" placeholder="Ej: 3500" min="1"
+          [value]="form().sueldo ?? ''"
+          (input)="patchForm('sueldo', $any($event.target).value)" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="modalAbierto.set(false)">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardar()">
+        {{ modalMode() === 'crear' ? 'Crear' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+}
