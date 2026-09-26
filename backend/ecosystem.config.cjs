@@ -8,9 +8,8 @@ module.exports = {
     exec_mode: "cluster",
     env: {
       NODE_ENV: "production",
-      PORT: 80,
-      // Reemplaza este valor con tu connection string real de MongoDB Atlas
-      MONGO_URI: "mongodb+srv://carytnas_db_user:<carytnas_db_user>@cluster0.jewjwuj.mongodb.net/?appName=Cluster0"
+      PORT: 3000,
+      MONGO_URI: "mongodb+srv://carytnas_db_user:carytnas_db_user@cluster0.jewjwuj.mongodb.net/?appName=Cluster0"
     },
     error_file: "./logs/err.log",
     out_file: "./logs/out.log",
