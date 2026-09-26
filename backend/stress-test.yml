@@ -1,0 +1,67 @@
+config:
+  target: "http://localhost:3000"
+  plugins:
+    ensure: {}
+  phases:
+    - duration: 20
+      arrivalRate: 5
+      name: "1. Fase de Calentamiento (Trafico Base)"
+    - duration: 30
+      arrivalRate: 15
+      rampTo: 50
+      name: "2. Fase de Saturacion Maxima (Pico de Carga)"
+      ensure:
+        thresholds:
+          - "http.response_time.p99": 200
+        maxErrorRate: 1
+
+scenarios:
+  - name: "Inundacion transaccional perimetral (Payloads Mixtos Zod)"
+    flow:
+      # Flujo A: GET lista de empleados
+      - get:
+          url: "/api/v1/empleados"
+          expect:
+            - statusCode: 200
+
+      # Flujo B: POST datos validos -> crea empleado y captura su _id
+      - post:
+          url: "/api/v1/empleados"
+          json:
+            nombre: "Andres Mendoza"
+            cargo: "Software Architect"
+            departamento: "I+D"
+            sueldo: 4200
+          capture:
+            - json: "$.data._id"
+              as: "employeeId"
+          expect:
+            - statusCode: 201
+
+      - think: 1
+
+      # Flujo C: POST datos corruptos -> Zod debe rechazar con 400
+      - post:
+          url: "/api/v1/empleados"
+          json:
+            nombre: "Al"
+            cargo: "Dev"
+            departamento: "TI"
+            sueldo: -500
+          expect:
+            - statusCode: 400
+
+      # Flujo D: PUT actualizar el empleado creado en Flujo B
+      - put:
+          url: "/api/v1/empleados/{{ employeeId }}"
+          json:
+            cargo: "Principal Architect"
+            sueldo: 5000
+          expect:
+            - statusCode: 200
+
+      # Flujo E: DELETE eliminar el empleado creado en Flujo B
+      - delete:
+          url: "/api/v1/empleados/{{ employeeId }}"
+          expect:
+            - statusCode: 200
