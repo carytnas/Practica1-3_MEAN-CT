@@ -5,7 +5,7 @@ import { createEmpleadoSchema, updateEmpleadoSchema } from '../dtos/empleado.dto
 import { ok, fail } from '../utils/apiResponse.js';
 
 // Depende únicamente de la interfaz: no conoce mongoose ni ningún ODM.
-class EmpleadoController {
+export class EmpleadoController {
   constructor(private readonly repository: IEmployeeRepository) {}
 
   getEmpleados = async (_req: Request, res: Response) => {

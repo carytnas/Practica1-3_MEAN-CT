@@ -1,0 +1,11 @@
+import 'dotenv/config';
+import mongoose from 'mongoose';
+const uri = process.env.MONGO_URI ?? 'mongodb://127.0.0.1/usuarios_db';
+console.log('Conectando a:', uri.replace(/:\/\/.*@/, '://***@'));
+await mongoose.connect(uri);
+const col = mongoose.connection.db.collection('empleados');
+const count = await col.countDocuments();
+const sample = await col.find({}).limit(5).toArray();
+console.log('Total registros:', count);
+console.log('Muestra:', sample.map(d => ({ id: d._id.toString(), nombre: d.nombre })));
+await mongoose.disconnect();
